@@ -25,8 +25,12 @@ export class S3Service {
       !accessKeyId.includes('your-access-key');
 
     if (!isConfigured) {
-      console.warn('⚠️  S3 is not configured. File upload features will not work.');
-      console.warn('   Please update S3 configuration in .env file to enable file uploads.');
+      console.warn(
+        '⚠️  S3 is not configured. File upload features will not work.',
+      );
+      console.warn(
+        '   Please update S3 configuration in .env file to enable file uploads.',
+      );
       // Create a dummy S3 client to prevent errors
       this.s3 = new S3Client({
         endpoint: 'https://dummy.endpoint.com',
@@ -40,14 +44,16 @@ export class S3Service {
     }
 
     this.s3 = new S3Client({
-      endpoint,
       region,
       credentials: {
         accessKeyId,
         secretAccessKey,
       },
-      forcePathStyle: true, // Required for some S3-compatible services
     });
+
+    console.log('✅ AWS S3 is properly configured');
+    console.log(`📦 Bucket: ${this.configService.get<string>('S3_BUCKET')}`);
+    console.log(`🌍 Region: ${region}`);
   }
 
   getS3() {
@@ -64,6 +70,8 @@ export class S3Service {
     return multerS3({
       s3: this.s3,
       bucket,
+      // Note: ACL is removed because modern S3 buckets have ACLs disabled
+      // Public access is controlled via bucket policy instead
       metadata: (
         req: Request,
         file: Express.Multer.File,
@@ -85,11 +93,12 @@ export class S3Service {
   }
 
   getPublicUrl(key: string): string {
-    const endpoint = this.configService.get<string>('S3_ENDPOINT');
+    const region = this.configService.get<string>('S3_REGION');
     const bucket = this.configService.get<string>('S3_BUCKET');
-    if (!endpoint || !bucket) {
+    if (!region || !bucket) {
       throw new Error('S3 configuration is missing');
     }
-    return `${endpoint}/${bucket}/${key}`;
+    // AWS S3 URL format: https://bucket-name.s3.region.amazonaws.com/key
+    return `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
   }
 }
