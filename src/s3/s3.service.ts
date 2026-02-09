@@ -15,8 +15,28 @@ export class S3Service {
     const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY');
     const secretAccessKey = this.configService.get<string>('S3_SECRET_KEY');
 
-    if (!endpoint || !region || !accessKeyId || !secretAccessKey) {
-      throw new Error('Missing required S3 configuration');
+    // Check if S3 is properly configured (not using placeholder values)
+    const isConfigured =
+      endpoint &&
+      region &&
+      accessKeyId &&
+      secretAccessKey &&
+      !endpoint.includes('your-s3-compatible-endpoint') &&
+      !accessKeyId.includes('your-access-key');
+
+    if (!isConfigured) {
+      console.warn('⚠️  S3 is not configured. File upload features will not work.');
+      console.warn('   Please update S3 configuration in .env file to enable file uploads.');
+      // Create a dummy S3 client to prevent errors
+      this.s3 = new S3Client({
+        endpoint: 'https://dummy.endpoint.com',
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: 'dummy',
+          secretAccessKey: 'dummy',
+        },
+      });
+      return;
     }
 
     this.s3 = new S3Client({

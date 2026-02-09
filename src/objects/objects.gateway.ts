@@ -7,10 +7,11 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
+import { ObjectDocument } from './schemas/object.schema';
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: '*', // Allow all origins in development
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -43,9 +44,9 @@ export class ObjectsGateway
     console.log(`Client ${client.id} left objects room`);
   }
 
-  broadcastObjectCreated(object: any) {
+  broadcastObjectCreated(object: ObjectDocument) {
     this.server.to('objects').emit('object:created', {
-      id: object._id,
+      id: object._id?.toString() || '',
       title: object.title,
       description: object.description,
       imageUrl: object.imageUrl,

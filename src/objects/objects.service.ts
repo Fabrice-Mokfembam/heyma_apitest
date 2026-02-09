@@ -10,12 +10,12 @@ export class ObjectsService {
   constructor(
     @InjectModel(ObjectClass.name) private objectModel: Model<ObjectDocument>,
     private s3Service: S3Service,
-  ) {}
+  ) { }
 
   async create(
     createObjectDto: CreateObjectDto,
     imageUrl: string,
-  ): Promise<ObjectClass> {
+  ): Promise<ObjectDocument> {
     const newObject = new this.objectModel({
       ...createObjectDto,
       imageUrl,
@@ -26,11 +26,11 @@ export class ObjectsService {
     return newObject.save();
   }
 
-  async findAll(): Promise<ObjectClass[]> {
+  async findAll(): Promise<ObjectDocument[]> {
     return this.objectModel.find().sort({ createdAt: -1 }).exec();
   }
 
-  async findOne(id: string): Promise<ObjectClass> {
+  async findOne(id: string): Promise<ObjectDocument> {
     const object = await this.objectModel.findById(id).exec();
     if (!object) {
       throw new NotFoundException('Object not found');
