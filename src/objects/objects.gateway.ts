@@ -11,18 +11,21 @@ import { ObjectDocument } from './schemas/object.schema';
 
 @WebSocketGateway({
   cors: {
-    origin: '*', // Allow all origins in development
+    origin: [
+      'http://localhost:3000',
+      'https://heyma-webtest.vercel.app',
+      'https://heyma-apitest.vercel.app',
+    ],
     methods: ['GET', 'POST'],
     credentials: true,
   },
 })
 export class ObjectsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) { }
 
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
